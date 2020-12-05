@@ -1,8 +1,5 @@
 #! /usr/bin/env python3
 
-import json
-import yaml
-
 from datadog import api
 from datadog import initialize
 
