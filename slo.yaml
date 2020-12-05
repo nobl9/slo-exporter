@@ -1,0 +1,12 @@
+apiVersion: n9/v1alpha
+kind: SLO
+metadata:
+  name: {name}
+  displayName: {displayName}
+  namespace: default
+spec:
+  description: {description}
+  indicator:
+    metricSource: my-datadog
+  budgetingMethod: Occurrences
+  alertPolicies: []

@@ -1,0 +1,4 @@
+    timeWindows:
+    - count: {count}
+      isRolling: true
+      unit: Day
