@@ -5,5 +5,5 @@ metadata:
   displayName: {displayName}
   namespace: default
 spec:
-  description: {description}
+  description: "{description}"
   serviceType: Other

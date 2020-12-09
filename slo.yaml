@@ -5,7 +5,7 @@ metadata:
   displayName: {displayName}
   namespace: default
 spec:
-  description: {description}
+  description: "{description}"
   indicator:
     metricSource: my-datadog
   budgetingMethod: Occurrences

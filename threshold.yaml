@@ -3,9 +3,9 @@
         incremental: false
         good:
           datadog:
-            query: {good}
+            query: "{good}"
         total:
           datadog:
-            query: {total}
-      displayName: {displayName}
+            query: "{total}"
+      displayName: "{displayName}"
       value: 1
