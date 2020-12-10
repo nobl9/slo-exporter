@@ -8,6 +8,7 @@ def get_api_options():
     """Read and return the required api and application keys."""
     api_key = open('api.key').read().strip()
     application_key = open('application.key').read().strip()
+
     return {'api_key': api_key, 'application_key': application_key}
 
 
@@ -15,7 +16,19 @@ def get_slo_ids():
     """Read and return the slo_ids to be processed."""
     with open('slo_ids') as f:
         slo_ids = f.readlines()
+
     return slo_ids
+
+
+def get_templates():
+    """Load the YAML templates needed to render the final configs."""
+    templates = {}
+    templates['service'] = open('service.yaml').read()
+    templates['slo'] = open('slo.yaml').read()
+    templates['thresholds'] = open('threshold.yaml').read()
+    templates['timewindow'] = open('timewindow.yaml').read()
+
+    return templates
 
 
 def get_slo_configs(api_options, slo_ids):
@@ -26,6 +39,7 @@ def get_slo_configs(api_options, slo_ids):
     for slo_id in slo_ids:
         config = api.ServiceLevelObjective.get(slo_id)
         slo_configs.append(config)
+
     return slo_configs
 
 
@@ -36,6 +50,7 @@ def extract_values(config):
     config_values['displayName'] = config['data']['name']
     config_values['description'] = config['data']['description']
     config_values['thresholds'] = []
+
     num_thresholds = len(config['data']['thresholds'])
     for i in range(num_thresholds):
         target_dict = config['data']['thresholds'][i]
@@ -47,6 +62,7 @@ def extract_values(config):
         config_values['good'] = config['data']['query']['numerator']
         config_values['total'] = config['data']['query']['denominator']
     config_values['count'] = config['data']['thresholds'][0]['timeframe'][:-1]
+
     return config_values
 
 
@@ -57,39 +73,37 @@ def construct_threshold(threshold, config_values):
     threshold_dict['good'] = config_values['good']
     threshold_dict['total'] = config_values ['total']
     threshold_dict['displayName'] = threshold['displayName']
+
     return threshold_dict
 
 
-def construct_yaml(config_values):
+def construct_yaml(config_values, templates):
     """Construct a string of YAML from values and templates."""
     constructed_yaml = ''
-    service_template = open('service.yaml').read()
-    slo_template = open('slo.yaml').read()
-    threshold_template = open('threshold.yaml').read()
-    timewindow_template = open('timewindow.yaml').read()
-
-    constructed_yaml += service_template.format(**config_values)
+    constructed_yaml += templates['service'].format(**config_values)
     constructed_yaml += '---\n'
-    constructed_yaml += slo_template.format(**config_values)
+    constructed_yaml += templates['slo'].format(**config_values)
     constructed_yaml += '    thresholds:\n'
+
     for threshold in config_values['thresholds']:
         threshold_values = construct_threshold(threshold, config_values)
-        constructed_yaml += threshold_template.format(**threshold_values)
-    constructed_yaml += timewindow_template.format(**config_values)
+        constructed_yaml += templates['thresholds'].format(**threshold_values)
+    constructed_yaml += templates['timewindow'].format(**config_values)
 
     return constructed_yaml
 
 
-def convert_configs(slo_configs):
+def convert_configs(slo_configs, templates):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     for config in slo_configs:
         config_values = extract_values(config)
-        constructed_yaml = construct_yaml(config_values)
+        constructed_yaml = construct_yaml(config_values, templates)
         print(constructed_yaml)
 
 
 if __name__ == '__main__':
     api_options = get_api_options()
     slo_ids = get_slo_ids()
+    templates = get_templates()
     slo_configs = get_slo_configs(api_options, slo_ids)
-    yaml_config = convert_configs(slo_configs)
+    yaml_config = convert_configs(slo_configs, templates)
