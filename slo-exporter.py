@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import logging
 import re
 
 from datadog import api
@@ -106,10 +107,13 @@ def construct_yaml(config_values, templates):
 
 def convert_configs(slo_configs, templates):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
+    nobl9_config = ''
     for config in slo_configs:
         config_values = extract_values(config)
-        constructed_yaml = construct_yaml(config_values, templates)
-        print(constructed_yaml)
+        nobl9_config += construct_yaml(config_values, templates)
+
+    return nobl9_config
+
 
 
 if __name__ == '__main__':
@@ -117,4 +121,5 @@ if __name__ == '__main__':
     slo_ids = get_slo_ids()
     templates = get_templates()
     slo_configs = get_slo_configs(api_options, slo_ids)
-    yaml_config = convert_configs(slo_configs, templates)
+    nobl9_config = convert_configs(slo_configs, templates)
+    print(nobl9_config)
