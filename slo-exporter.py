@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+import re
+
 from datadog import api
 from datadog import initialize
 
@@ -43,10 +45,19 @@ def get_slo_configs(api_options, slo_ids):
     return slo_configs
 
 
+def normalize_name(name):
+    """Turn a displayname in a kubernetes-style name."""
+    name = name.lower()
+    name = re.sub('[^a-zA-Z0-9- ]', '', name)
+    name = re.sub('\s+', '-', name)
+
+    return name
+
+
 def extract_values(config):
     """Extract the data we care about and return as a dict."""
     config_values = {}
-    config_values['name'] = config['data']['name'].lower()
+    config_values['name'] = normalize_name(config['data']['name'])
     config_values['displayName'] = config['data']['name']
     config_values['description'] = config['data']['description']
     config_values['thresholds'] = []
