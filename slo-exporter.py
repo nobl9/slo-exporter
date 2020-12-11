@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import argparse
 import logging
 import re
 import sys
@@ -8,18 +9,37 @@ from datadog import api
 from datadog import initialize
 
 
-def get_api_options():
+parser = argparse.ArgumentParser()
+parser.add_argument('--output', type=str, default='stdout',
+                    choices=['stdout', 'file'],
+                    help='Choose your output desintion. One of '
+                         '\'stdout\' or \'file\'')
+parser.add_argument('--filename', type=str, required='--output' in sys.argv,
+                    help='Filename for output. Must specify --output=file.')
+parser.add_argument('--api_key', type=str, default='api.key',
+                    help='Location of your datadog API key.')
+parser.add_argument('--application_key', type=str, default='application.key',
+                    help='Location of your datadog Application key.')
+parser.add_argument('--slo_ids', type=str, default='slo_ids',
+                    help='Location of your slo_ids file.')
+
+
+def get_api_options(api_key, application_key):
     """Read and return the required api and application keys."""
-    api_key = open('api.key').read().strip()
-    application_key = open('application.key').read().strip()
+    api_value = open(api_key).read().strip()
+    application_value = open(application_key).read().strip()
 
-    return {'api_key': api_key, 'application_key': application_key}
+    return {'api_key': api_value, 'application_key': application_value}
 
 
-def get_slo_ids():
+def get_slo_ids(slo_ids):
     """Read and return the slo_ids to be processed."""
-    with open('slo_ids') as f:
-        slo_ids = f.readlines()
+    try:
+        with open(slo_ids) as f:
+            slo_ids = f.readlines()
+    except FileNotFoundError as e:
+        logging.error(e)
+        sys.exit(1)
 
     return slo_ids
 
@@ -123,11 +143,25 @@ def convert_configs(slo_configs, templates):
     return nobl9_config
 
 
+def output_config(nolb9_config, output, filename):
+    """Output the Nobl9 configuration to stdout or a specified filename"""
+    if output == 'file':
+        f = open(filename, 'w')
+        f.write(nobl9_config)
+    else:
+        print(nobl9_config)
+
+    return
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
-    api_options = get_api_options()
-    slo_ids = get_slo_ids()
+    args = vars(parser.parse_args())
+    api_options = get_api_options(args['api_key'], args['application_key'])
+    slo_ids = get_slo_ids(args['slo_ids'])
     templates = get_templates()
+
     slo_configs = get_slo_configs(api_options, slo_ids)
     nobl9_config = convert_configs(slo_configs, templates)
+    output_config(nobl9_config, args['output'], args['filename'])
+    sys.exit(0)
