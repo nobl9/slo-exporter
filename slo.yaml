@@ -7,6 +7,6 @@ metadata:
 spec:
   description: "{description}"
   indicator:
-    metricSource: my-datadog
+    metricSource: {datasource}
   budgetingMethod: Occurrences
   alertPolicies: []

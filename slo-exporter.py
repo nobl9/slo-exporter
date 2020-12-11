@@ -22,6 +22,8 @@ parser.add_argument('--application_key', type=str, default='application.key',
                     help='Location of your datadog Application key.')
 parser.add_argument('--slo_ids', type=str, default='slo_ids',
                     help='Location of your slo_ids file.')
+parser.add_argument('--datasource', type=str, default='my-datadog',
+                    help='Nobl9 datasource to use.')
 
 
 def get_api_options(api_key, application_key):
@@ -83,12 +85,13 @@ def normalize_name(name):
     return name
 
 
-def extract_values(config):
+def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['name'] = normalize_name(config['data']['name'])
     config_values['displayName'] = config['data']['name']
     config_values['description'] = config['data']['description']
+    config_values['datasource'] = datasource
     config_values['thresholds'] = []
 
     num_thresholds = len(config['data']['thresholds'])
@@ -133,11 +136,11 @@ def construct_yaml(config_values, templates):
     return constructed_yaml
 
 
-def convert_configs(slo_configs, templates):
+def convert_configs(slo_configs, templates, datasource):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     nobl9_config = ''
     for config in slo_configs:
-        config_values = extract_values(config)
+        config_values = extract_values(config, datasource)
         nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
@@ -162,6 +165,6 @@ if __name__ == '__main__':
     templates = get_templates()
 
     slo_configs = get_slo_configs(api_options, slo_ids)
-    nobl9_config = convert_configs(slo_configs, templates)
+    nobl9_config = convert_configs(slo_configs, templates, args['datasource'])
     output_config(nobl9_config, args['output'], args['filename'])
     sys.exit(0)
