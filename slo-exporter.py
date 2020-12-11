@@ -2,6 +2,7 @@
 
 import logging
 import re
+import sys
 
 from datadog import api
 from datadog import initialize
@@ -26,10 +27,14 @@ def get_slo_ids():
 def get_templates():
     """Load the YAML templates needed to render the final configs."""
     templates = {}
-    templates['service'] = open('service.yaml').read()
-    templates['slo'] = open('slo.yaml').read()
-    templates['thresholds'] = open('threshold.yaml').read()
-    templates['timewindow'] = open('timewindow.yaml').read()
+    try:
+        templates['service'] = open('service.yaml').read()
+        templates['slo'] = open('slo.yaml').read()
+        templates['thresholds'] = open('threshold.yaml').read()
+        templates['timewindow'] = open('timewindow.yaml').read()
+    except FileNotFoundError as e:
+        logging.error(e)
+        sys.exit(1)
 
     return templates
 
@@ -41,6 +46,9 @@ def get_slo_configs(api_options, slo_ids):
 
     for slo_id in slo_ids:
         config = api.ServiceLevelObjective.get(slo_id)
+        if 'errors' in config.keys():
+            # The datadog api library will already log a meaningful message
+            sys.exit(1)
         slo_configs.append(config)
 
     return slo_configs
@@ -117,9 +125,9 @@ def convert_configs(slo_configs, templates):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
     api_options = get_api_options()
     slo_ids = get_slo_ids()
     templates = get_templates()
     slo_configs = get_slo_configs(api_options, slo_ids)
     nobl9_config = convert_configs(slo_configs, templates)
-    print(nobl9_config)
