@@ -1,0 +1,11 @@
+    - budgetTarget: {budgetTarget}
+      countMetrics:
+        incremental: false
+        good:
+          datadog:
+            query: "{good}"
+        total:
+          datadog:
+            query: "{total}"
+      displayName: "{displayName}"
+      value: 1
