@@ -126,7 +126,7 @@ def construct_yaml(config_values, templates):
     constructed_yaml += templates['service'].format(**config_values)
     constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
-    constructed_yaml += '    objectives:\n'
+    constructed_yaml += '  objectives:\n'
 
     for threshold in config_values['thresholds']:
         threshold_values = construct_threshold(threshold, config_values)
