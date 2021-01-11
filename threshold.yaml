@@ -1,4 +1,4 @@
-    - budgetTarget: {budgetTarget}
+    - target: {budgetTarget}
       countMetrics:
         incremental: false
         good:
