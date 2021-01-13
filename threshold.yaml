@@ -8,4 +8,4 @@
         datadog:
           query: "{total}"
     displayName: "{displayName}"
-    value: 1
+    value: {value_counter}

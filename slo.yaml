@@ -6,6 +6,7 @@ metadata:
   namespace: default
 spec:
   description: "{description}"
+  service: {name}
   indicator:
     metricSource: {datasource}
   budgetingMethod: Occurrences

@@ -91,19 +91,22 @@ def extract_values(config, datasource):
     return config_values
 
 
-def construct_threshold(threshold, config_values):
+def construct_threshold(threshold, config_values, value_counter):
     """Put together a dictionary for a specific threshold."""
     threshold_dict = {}
-    threshold_dict['budgetTarget'] = threshold['budgetTarget']
+    threshold_dict['budgetTarget'] = float(threshold['budgetTarget'])/100
     threshold_dict['good'] = config_values['good']
     threshold_dict['total'] = config_values ['total']
     threshold_dict['displayName'] = threshold['displayName']
+    threshold_dict['value_counter'] = value_counter
+    value_counter += 1
 
-    return threshold_dict
+    return threshold_dict, value_counter
 
 
 def construct_yaml(config_values, templates):
     """Construct a string of YAML from values and templates."""
+    value_counter = 0
     constructed_yaml = ''
     constructed_yaml += templates['service'].format(**config_values)
     constructed_yaml += '---\n'
@@ -111,9 +114,12 @@ def construct_yaml(config_values, templates):
     constructed_yaml += '  thresholds:\n'
 
     for threshold in config_values['thresholds']:
-        threshold_values = construct_threshold(threshold, config_values)
+        threshold_values, value_counter = construct_threshold(threshold,
+                                                              config_values,
+                                                              value_counter)
         constructed_yaml += templates['thresholds'].format(**threshold_values)
     constructed_yaml += templates['timewindow'].format(**config_values)
+    constructed_yaml += '---\n'
 
     return constructed_yaml
 
