@@ -7,5 +7,5 @@ YAML configurations.
 2. Copy a Datadog Application Key into a file named `application.key`
 3. Run `slo-exporter.py --datasource=your-dd-datasource`. This defaults output
    to STDOUT.
-4. Alternately you can specify output to a via
-   `--output=file --filename=filename.yml`
+4. Alternately you can specify output to a file via
+   `--output=file --filename=filename.yml` or simple shell redirection.
