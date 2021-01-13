@@ -48,7 +48,7 @@ def get_templates():
 
 
 def get_slo_configs(api_options):
-    """Connect to Datadog and to extract and return SLO configurations."""
+    """Connect to Datadog and extract and return SLO configurations."""
     initialize(**api_options)
     slo_configs = api.ServiceLevelObjective.get_all()
     if 'errors' in slo_configs.keys():
@@ -106,6 +106,9 @@ def construct_threshold(threshold, config_values, value_counter):
 
 def construct_yaml(config_values, templates):
     """Construct a string of YAML from values and templates."""
+    # In case there are multiple thresholds per ratio SLO we will need
+    # a unique value for each, so this variable gets passed around and
+    # updated as needed.
     value_counter = 0
     constructed_yaml = ''
     constructed_yaml += templates['service'].format(**config_values)
