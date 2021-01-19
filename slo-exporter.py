@@ -63,6 +63,7 @@ def normalize_name(name):
     name = name.lower()
     name = re.sub('[^a-zA-Z0-9- ]', '', name)
     name = re.sub('\s+', '-', name)
+    name = re.sub(r'(-)+', r'\1', name)
 
     return name
 
@@ -78,6 +79,8 @@ def extract_values(config, datasource):
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
+        if not 'query' in config.keys():
+            break
         target_dict = config['thresholds'][i]
         target = target_dict['target']
         config_values['thresholds'].append({})
