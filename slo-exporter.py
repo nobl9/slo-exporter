@@ -50,7 +50,7 @@ def get_templates():
 def get_slo_configs(api_options):
     """Connect to Datadog and extract and return SLO configurations."""
     initialize(**api_options)
-    slo_configs = api.ServiceLevelObjective.get_all()
+    slo_configs = api.ServiceLevelObjective.get_all(limit=5000)
     if 'errors' in slo_configs.keys():
         # The datadog api library will already log a meaningful message
         sys.exit(1)
