@@ -65,6 +65,7 @@ def normalize_name(name):
     name = re.sub('[^a-zA-Z0-9- ]', '', name)
     name = re.sub('\s+', '-', name)
     name = re.sub(r'(-)+', r'\1', name)
+    name = name[:63]
 
     return name
 
