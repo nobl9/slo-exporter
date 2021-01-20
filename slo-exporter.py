@@ -88,8 +88,6 @@ def extract_values(config, datasource):
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
-        if not 'query' in config.keys():
-            break
         target_dict = config['thresholds'][i]
         target = target_dict['target']
         config_values['thresholds'].append({})
@@ -143,8 +141,9 @@ def convert_configs(slo_configs, templates, datasource):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     nobl9_config = ''
     for config in slo_configs['data']:
-        config_values = extract_values(config, datasource)
-        nobl9_config += construct_yaml(config_values, templates)
+        if 'query' in config.keys():
+            config_values = extract_values(config, datasource)
+            nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
 
