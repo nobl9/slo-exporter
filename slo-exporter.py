@@ -79,6 +79,14 @@ def escape_chars(description):
     return description
 
 
+def extract_tag(tag_name, config, default):
+    """Extract a tag if it is present in a config or fallback to a default."""
+    for tag in config['tags']:
+        if tag.startswith(tag_name):
+            return tag.split(':')[1]
+    return default
+
+
 def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
@@ -87,6 +95,9 @@ def extract_values(config, datasource):
     config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
     config_values['thresholds'] = []
+    config_values['service_name'] = extract_tag(tag_name='service',
+                                                config=config,
+                                                default=config_values['name'])
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
