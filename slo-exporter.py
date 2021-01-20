@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
+import json
 import logging
 import re
 import sys
@@ -11,9 +12,9 @@ from datadog import initialize
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', type=str, default='stdout',
-                    choices=['stdout', 'file'],
+                    choices=['stdout', 'file', 'json'],
                     help='Choose your output desintion. One of '
-                         '\'stdout\' or \'file\'')
+                         '\'stdout\', \'file\', or \'json\'.')
 parser.add_argument('--filename', type=str, required='--output' in sys.argv,
                     help='Filename for output. Must specify --output=file.')
 parser.add_argument('--api_key', type=str, default='api.key',
@@ -166,6 +167,9 @@ if __name__ == '__main__':
     templates = get_templates()
 
     slo_configs = get_slo_configs(api_options)
+    if args['output'] == 'json':
+        print(json.dumps(slo_configs, indent=2))
+        sys.exit(0)
     nobl9_config = convert_configs(slo_configs, templates, args['datasource'])
     output_config(nobl9_config, args['output'], args['filename'])
     sys.exit(0)
