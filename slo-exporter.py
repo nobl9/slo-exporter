@@ -68,12 +68,20 @@ def normalize_name(name):
     return name
 
 
+def escape_chars(description):
+    """Datadog description strings might contain quotes or newlines."""
+    description = re.sub('\n', ' ', description)
+    description = re.sub('\"', '\\\"', description)
+
+    return description
+
+
 def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['name'] = normalize_name(config['name'])
     config_values['displayName'] = config['name']
-    config_values['description'] = config['description']
+    config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
     config_values['thresholds'] = []
 
