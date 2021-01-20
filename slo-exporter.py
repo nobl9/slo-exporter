@@ -82,7 +82,7 @@ def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['name'] = normalize_name(config['name'])
-    config_values['displayName'] = config['name']
+    config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
     config_values['thresholds'] = []
