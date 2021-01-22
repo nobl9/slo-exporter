@@ -141,7 +141,7 @@ def construct_yaml(config_values, templates, services):
     constructed_yaml = ''
     if config_values['unique_service'] == False:
         constructed_yaml += templates['service'].format(**config_values)
-    constructed_yaml += '---\n'
+        constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
     constructed_yaml += '  thresholds:\n'
 
