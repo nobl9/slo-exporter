@@ -3,11 +3,13 @@ kind: SLO
 metadata:
   name: {name}
   displayName: "{displayName}"
-  namespace: default
+  project: {project}
 spec:
   description: "{description}"
   service: {service_name}
   indicator:
-    metricSource: {datasource}
+    metricSource:
+      name: {datasource}
+      project: {project}
   budgetingMethod: Occurrences
   alertPolicies: []

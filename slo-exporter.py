@@ -23,6 +23,8 @@ parser.add_argument('--application_key', type=str, default='application.key',
                     help='Location of your datadog Application key.')
 parser.add_argument('--datasource', type=str, default='my-datadog',
                     help='Nobl9 datasource to use.')
+parser.add_argument('--project', type=str, default='default',
+                    help='Nobl9 project that the datasource is in.')
 
 
 def get_api_options(api_key, application_key):
@@ -87,13 +89,14 @@ def extract_tag(tag_name, config, default):
     return default
 
 
-def extract_values(config, datasource):
+def extract_values(config, datasource, project):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['name'] = normalize_name(config['name'])
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
+    config_values['project'] = project
     config_values['thresholds'] = []
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
@@ -150,12 +153,12 @@ def construct_yaml(config_values, templates):
     return constructed_yaml
 
 
-def convert_configs(slo_configs, templates, datasource):
+def convert_configs(slo_configs, templates, datasource, project):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     nobl9_config = ''
     for config in slo_configs['data']:
         if 'query' in config.keys():
-            config_values = extract_values(config, datasource)
+            config_values = extract_values(config, datasource, project)
             nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
@@ -182,6 +185,6 @@ if __name__ == '__main__':
     if args['output'] == 'json':
         print(json.dumps(slo_configs, indent=2))
         sys.exit(0)
-    nobl9_config = convert_configs(slo_configs, templates, args['datasource'])
+    nobl9_config = convert_configs(slo_configs, templates, args['datasource'], args['project'])
     output_config(nobl9_config, args['output'], args['filename'])
     sys.exit(0)
