@@ -2,7 +2,7 @@ apiVersion: n9/v1alpha
 kind: Service
 metadata:
   name: {service_name}
-  displayName: "{displayName}"
+  displayName: "{service_name}"
   namespace: default
 spec:
   description: "{description}"
