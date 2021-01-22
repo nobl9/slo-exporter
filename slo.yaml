@@ -3,7 +3,7 @@ kind: SLO
 metadata:
   name: {name}
   displayName: "{displayName}"
-  namespace: default
+  namespace: {namespace}
 spec:
   description: "{description}"
   service: {service_name}
