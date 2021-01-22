@@ -84,7 +84,7 @@ def extract_tag(tag_name, config, default):
     """Extract a tag if it is present in a config or fallback to a default."""
     for tag in config['tags']:
         if tag.startswith(tag_name):
-            return tag.split(':')[1]
+            return normalize_name(tag.split(':')[1])
     return default
 
 
