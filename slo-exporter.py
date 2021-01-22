@@ -91,6 +91,7 @@ def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     services = []
+    config_values['unique_service'] = False
     config_values['name'] = normalize_name(config['name'])
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
@@ -99,8 +100,9 @@ def extract_values(config, datasource):
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
                                                 default=config_values['name'])
-    if config_values['service_name'] != config['name']:
+    if config_values['service_name'] != config_values['name']:
         services.append(config_values['service_name'])
+        config_values['unique_service'] = True
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
@@ -137,7 +139,8 @@ def construct_yaml(config_values, templates, services):
     # updated as needed.
     value_counter = 0
     constructed_yaml = ''
-    constructed_yaml += templates['service'].format(**config_values)
+    if config_values['unique_service'] == False:
+        constructed_yaml += templates['service'].format(**config_values)
     constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
     constructed_yaml += '  thresholds:\n'
@@ -150,11 +153,6 @@ def construct_yaml(config_values, templates, services):
     constructed_yaml += templates['timewindow'].format(**config_values)
     constructed_yaml += '---\n'
 
-    for service in services:
-        config_values['name'] = service
-        constructed_yaml += templates['service'].format(**config_values)
-        constructed_yaml += '---\n'
-
     return constructed_yaml
 
 
@@ -165,6 +163,11 @@ def convert_configs(slo_configs, templates, datasource):
         if 'query' in config.keys():
             config_values, services = extract_values(config, datasource)
             nobl9_config += construct_yaml(config_values, templates, services)
+
+    for service in services:
+        config_values['name'] = service
+        nobl9_config += templates['service'].format(**config_values)
+        nobl9_config += '---\n'
 
     return nobl9_config
 
