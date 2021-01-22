@@ -90,8 +90,6 @@ def extract_tag(tag_name, config, default):
 def extract_values(config, datasource):
     """Extract the data we care about and return as a dict."""
     config_values = {}
-    services = []
-    config_values['unique_service'] = False
     config_values['name'] = normalize_name(config['name'])
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
@@ -100,9 +98,6 @@ def extract_values(config, datasource):
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
                                                 default=config_values['name'])
-    if config_values['service_name'] != config_values['name']:
-        services.append(config_values['service_name'])
-        config_values['unique_service'] = True
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
@@ -116,7 +111,7 @@ def extract_values(config, datasource):
         config_values['total'] = config['query']['denominator']
     config_values['count'] = config['thresholds'][0]['timeframe'][:-1]
 
-    return config_values, services
+    return config_values
 
 
 def construct_threshold(threshold, config_values, value_counter):
@@ -132,16 +127,15 @@ def construct_threshold(threshold, config_values, value_counter):
     return threshold_dict, value_counter
 
 
-def construct_yaml(config_values, templates, services):
+def construct_yaml(config_values, templates):
     """Construct a string of YAML from values and templates."""
     # In case there are multiple thresholds per ratio SLO we will need
     # a unique value for each, so this variable gets passed around and
     # updated as needed.
     value_counter = 0
     constructed_yaml = ''
-    if config_values['unique_service'] == False:
-        constructed_yaml += templates['service'].format(**config_values)
-        constructed_yaml += '---\n'
+    constructed_yaml += templates['service'].format(**config_values)
+    constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
     constructed_yaml += '  thresholds:\n'
 
@@ -161,13 +155,8 @@ def convert_configs(slo_configs, templates, datasource):
     nobl9_config = ''
     for config in slo_configs['data']:
         if 'query' in config.keys():
-            config_values, services = extract_values(config, datasource)
-            nobl9_config += construct_yaml(config_values, templates, services)
-
-    for service in services:
-        config_values['name'] = service
-        nobl9_config += templates['service'].format(**config_values)
-        nobl9_config += '---\n'
+            config_values = extract_values(config, datasource)
+            nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
 
