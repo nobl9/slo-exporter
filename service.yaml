@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {name}
   displayName: "{displayName}"
-  namespace: default
+  project: {project}
 spec:
   description: "{description}"
   serviceType: Other
