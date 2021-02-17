@@ -40,6 +40,7 @@ def get_templates():
     templates = {}
     try:
         templates['service'] = open('service.yaml').read()
+        templates['unique_service'] = open('unique_service.yaml').read()
         templates['slo'] = open('slo.yaml').read()
         templates['thresholds'] = open('threshold.yaml').read()
         templates['timewindow'] = open('timewindow.yaml').read()
@@ -85,13 +86,14 @@ def extract_tag(tag_name, config, default):
     """Extract a tag if it is present in a config or fallback to a default."""
     for tag in config['tags']:
         if tag.startswith(tag_name):
-            return tag.split(':')[1]
+            return normalize_name(tag.split(':')[1])
     return default
 
 
 def extract_values(config, datasource, project):
     """Extract the data we care about and return as a dict."""
     config_values = {}
+    config_values['unique_service'] = False
     config_values['name'] = normalize_name(config['name'])
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
@@ -101,6 +103,8 @@ def extract_values(config, datasource, project):
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
                                                 default=config_values['name'])
+    if config_values['service_name'] != config_values['name']:
+        config_values['unique_service'] = True
 
     num_thresholds = len(config['thresholds'])
     for i in range(num_thresholds):
@@ -137,8 +141,12 @@ def construct_yaml(config_values, templates):
     # updated as needed.
     value_counter = 0
     constructed_yaml = ''
-    constructed_yaml += templates['service'].format(**config_values)
-    constructed_yaml += '---\n'
+    if config_values['unique_service'] == False:
+        constructed_yaml += templates['service'].format(**config_values)
+        constructed_yaml += '---\n'
+    else:
+        constructed_yaml += templates['unique_service'].format(**config_values)
+        constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
     constructed_yaml += '  thresholds:\n'
 
