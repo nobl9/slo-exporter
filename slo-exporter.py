@@ -23,8 +23,8 @@ parser.add_argument('--application_key', type=str, default='application.key',
                     help='Location of your datadog Application key.')
 parser.add_argument('--datasource', type=str, default='my-datadog',
                     help='Nobl9 datasource to use.')
-parser.add_argument('--namespace', type=str, default='default',
-                    help='Specify a target namespace.')
+parser.add_argument('--project', type=str, default='default',
+                    help='Specify a target project.')
 
 
 def get_api_options(api_key, application_key):
@@ -42,7 +42,7 @@ def get_templates():
         templates['service'] = open('service.yaml').read()
         templates['unique_service'] = open('unique_service.yaml').read()
         templates['slo'] = open('slo.yaml').read()
-        templates['thresholds'] = open('threshold.yaml').read()
+        templates['objective'] = open('objective.yaml').read()
         templates['timewindow'] = open('timewindow.yaml').read()
     except FileNotFoundError as e:
         logging.error(e)
@@ -90,7 +90,7 @@ def extract_tag(tag_name, config, default):
     return default
 
 
-def extract_values(config, datasource, namespace):
+def extract_values(config, datasource, project):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['unique_service'] = False
@@ -98,7 +98,7 @@ def extract_values(config, datasource, namespace):
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
-    config_values['namespace'] = namespace
+    config_values['project'] = project
     config_values['thresholds'] = []
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
@@ -148,25 +148,25 @@ def construct_yaml(config_values, templates):
         constructed_yaml += templates['unique_service'].format(**config_values)
         constructed_yaml += '---\n'
     constructed_yaml += templates['slo'].format(**config_values)
-    constructed_yaml += '  thresholds:\n'
+    constructed_yaml += '  objectives:\n'
 
     for threshold in config_values['thresholds']:
         threshold_values, value_counter = construct_threshold(threshold,
                                                               config_values,
                                                               value_counter)
-        constructed_yaml += templates['thresholds'].format(**threshold_values)
+        constructed_yaml += templates['objective'].format(**threshold_values)
     constructed_yaml += templates['timewindow'].format(**config_values)
     constructed_yaml += '---\n'
 
     return constructed_yaml
 
 
-def convert_configs(slo_configs, templates, datasource, namespace):
+def convert_configs(slo_configs, templates, datasource, project):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     nobl9_config = ''
     for config in slo_configs['data']:
         if 'query' in config.keys():
-            config_values = extract_values(config, datasource, namespace)
+            config_values = extract_values(config, datasource, project)
             nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
@@ -194,6 +194,6 @@ if __name__ == '__main__':
         print(json.dumps(slo_configs, indent=2))
         sys.exit(0)
     nobl9_config = convert_configs(slo_configs, templates,
-                                   args['datasource'], args['namespace'])
+                                   args['datasource'], args['project'])
     output_config(nobl9_config, args['output'], args['filename'])
     sys.exit(0)
