@@ -9,7 +9,7 @@ YAML configurations.
    to STDOUT.
 4. Alternately you can specify output to a file via
    `--output=file --filename=filename.yml` or simple shell redirection.
-5. You can specify a customer project via `--project`.
+5. You can specify a custom project via `--project`.
 6. You can specify a project to be populated via a tag via `--project_tag`.
 7. The output from slo-exporter.py can be input directly to the Nobl9 sloctl
    CLI. For example:
