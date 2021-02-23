@@ -25,6 +25,8 @@ parser.add_argument('--datasource', type=str, default='my-datadog',
                     help='Nobl9 datasource to use.')
 parser.add_argument('--project', type=str, default='default',
                     help='Specify a target project.')
+parser.add_argument('--project_tag', type=str, default=None,
+                    help='Use tags applied to SLOs to determine projects.')
 
 
 def get_api_options(api_key, application_key):
@@ -84,13 +86,14 @@ def escape_chars(description):
 
 def extract_tag(tag_name, config, default):
     """Extract a tag if it is present in a config or fallback to a default."""
-    for tag in config['tags']:
-        if tag.startswith(tag_name):
-            return normalize_name(tag.split(':')[1])
+    if tag_name:
+        for tag in config['tags']:
+            if tag.startswith(tag_name):
+                return normalize_name(tag.split(':')[1])
     return default
 
 
-def extract_values(config, datasource, project):
+def extract_values(config, datasource, project, project_tag):
     """Extract the data we care about and return as a dict."""
     config_values = {}
     config_values['unique_service'] = False
@@ -98,11 +101,13 @@ def extract_values(config, datasource, project):
     config_values['displayName'] = config['name'][:63]
     config_values['description'] = escape_chars(config['description'])
     config_values['datasource'] = datasource
-    config_values['project'] = project
-    config_values['thresholds'] = []
+    config_values['project'] = extract_tag(tag_name=project_tag,
+                                           config=config,
+                                           default=project)
     config_values['service_name'] = extract_tag(tag_name='service',
                                                 config=config,
                                                 default=config_values['name'])
+    config_values['thresholds'] = []
     if config_values['service_name'] != config_values['name']:
         config_values['unique_service'] = True
 
@@ -161,12 +166,13 @@ def construct_yaml(config_values, templates):
     return constructed_yaml
 
 
-def convert_configs(slo_configs, templates, datasource, project):
+def convert_configs(slo_configs, templates, datasource, project, project_tag):
     """Convert and return the Datadog SLO configurations into Nobl9 YAML."""
     nobl9_config = ''
     for config in slo_configs['data']:
         if 'query' in config.keys():
-            config_values = extract_values(config, datasource, project)
+            config_values = extract_values(config, datasource, project,
+                                           project_tag)
             nobl9_config += construct_yaml(config_values, templates)
 
     return nobl9_config
@@ -194,6 +200,7 @@ if __name__ == '__main__':
         print(json.dumps(slo_configs, indent=2))
         sys.exit(0)
     nobl9_config = convert_configs(slo_configs, templates,
-                                   args['datasource'], args['project'])
+                                   args['datasource'], args['project'],
+                                   args['project_tag'])
     output_config(nobl9_config, args['output'], args['filename'])
     sys.exit(0)
