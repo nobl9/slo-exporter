@@ -10,6 +10,6 @@ spec:
   indicator:
     metricSource:
       name: {datasource}
-      project: {project}
+      project: {datasource_project}
   budgetingMethod: Occurrences
   alertPolicies: []
