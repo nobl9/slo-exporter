@@ -27,7 +27,7 @@ Datadog SLOs. (This accomplishes a one-way sync. Changes from Datadog will be
 synched to Nolb9. However, changes made in Nobl9 will not be synched back to
 Datadog.)
 
-##Additional recommendations about the python environment
+## Additional recommendations about the python environment
 
 To create a python 3 virtual environment and install dependencies:
 ```shell script
@@ -36,6 +36,6 @@ source pyenv/bin/activate
 pip install -r requirements.txt
 ```
 
-##Additional flags
+## Additional flags
 
 There are additional optional flag options discoverable via `--help`.
