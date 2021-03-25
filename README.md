@@ -64,9 +64,13 @@ docker run --env-file={your_env_file_name} slo-exporter
 ## Environment variables for sloctl
 
 For sloctl to wotk in an container set following environment variables:
+
 N9_PROJECT
+
 N9_CLIENT_ID
+
 N9_CLIENT_SECRET
 
-For specific Datasource in DataDog
+For specific Datasource in DataDog:
+
 DD_DS_PROJECT - DataDog Datasource Project
