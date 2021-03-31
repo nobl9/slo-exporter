@@ -10,21 +10,38 @@ import os
 from datadog import api
 from datadog import initialize
 
-datasource = os.environ.get('DD_DS')
-datasource_project = os.environ.get('DD_DS_PROJECT')
-project = os.environ.get('DD_PROJECT')
-project_tag = os.environ.get('DD_PROJECT_TAG')
-filename = os.environ.get('DD_FILENAME')
-output = os.environ.get('DD_OUTPUT')
+parser = argparse.ArgumentParser()
+parser.add_argument('--output', type=str, default='stdout',
+                    choices=['stdout', 'file', 'json'],
+                    help='Choose your output desintion. One of '
+                         '\'stdout\', \'file\', or \'json\'.')
+parser.add_argument('--filename', type=str, required='--output' in sys.argv,
+                    help='Filename for output. Must specify --output=file.')
+parser.add_argument('--api_key', type=str, default='api.key',
+                    help='Location of your datadog API key.')
+parser.add_argument('--application_key', type=str, default='application.key',
+                    help='Location of your datadog Application key.')
+parser.add_argument('--datasource', type=str, default='my-datadog',
+                    help='Nobl9 datasource to use.')
+parser.add_argument('--datasource_project', type=str, default='default',
+                    help='Nobl9 project where your datasource resides.')
+parser.add_argument('--project', type=str, default='default',
+                    help='Specify a target project.')
+parser.add_argument('--project_tag', type=str, default=None,
+                    help='Use tags applied to SLOs to determine projects.')
 
-
-def get_api_options():
+def get_api_options(api_key, application_key):
     """Read and return the required api and application keys."""
+    api_value = open(api_key).read().strip()
+    application_value = open(application_key).read().strip()
+
+    return {'api_key': api_value, 'application_key': application_value}
+
+def get_api_options_from_env():
     api_value = os.environ.get('DD_API_KEY')
     application_value = os.environ.get('DD_APPLICATION_KEY')
 
     return {'api_key': api_value, 'application_key': application_value}
-
 
 def get_templates():
     """Load the YAML templates needed to render the final configs."""
@@ -181,10 +198,48 @@ def output_config(nolb9_config, output, filename):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
-    api_options = get_api_options()
-    templates = get_templates()
+    args = vars(parser.parse_args())
 
+
+    if 'DD_API_KEY' in os.environ and 'DD_APPLICATION_KEY' in os.environ:
+        api_options = get_api_options_from_env()
+    else:
+        api_options = get_api_options(args['api_key'], args['application_key'])
+    
+
+    if 'N9_DATASOURCE' in os.environ:
+        datasource = os.environ.get('N9_DATASOURCE')
+    else:
+        datasource = args['datasource']
+
+    if 'N9_DATASOURCE_PROJECT' in os.environ:
+        datasource_project = os.environ.get('N9_DATASOURCE_PROJECT')
+    else:
+        datasource_project = args['datasource_project']
+
+    if 'N9_PROJECT' in os.environ:
+        project = os.environ.get('N9_PROJECT')
+    else:
+        project = args['project']
+
+    if 'N9_PROJECT_TAG' in os.environ:
+        project_tag = os.environ.get('N9_PROJECT_TAG')
+    else:
+        project_tag = args['project_tag']
+
+    if 'DD_FILENAME' in os.environ:
+        filename = os.environ.get('DD_FILENAME')
+    else:
+        filename = args['filename']
+
+    if 'DD_OUTPUT' in os.environ:
+        output = os.environ.get('DD_OUTPUT')
+    else:
+        output = args['output']
+
+    templates = get_templates()
     slo_configs = get_slo_configs(api_options)
+
     if output == 'json':
         print(json.dumps(slo_configs, indent=2))
         sys.exit(0)
