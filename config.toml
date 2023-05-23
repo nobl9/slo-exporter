@@ -1,0 +1,8 @@
+defaultContext = "slo-export"
+
+[Contexts]
+  [Contexts.slo-export]
+    clientId = ""
+    clientSecret = ""
+    accessToken = ""
+    project = ""

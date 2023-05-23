@@ -1,9 +1,9 @@
 apiVersion: n9/v1alpha
 kind: Service
 metadata:
-  name: {name}
-  displayName: "{displayName}"
+  name: {service_name}
+  displayName: "{service_name}"
   project: {project}
 spec:
-  description: "{description}"
+  description: ""
   serviceType: Other

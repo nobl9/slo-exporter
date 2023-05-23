@@ -3,34 +3,19 @@
 This script will help you convert Datadog SLO configurations to Nobl9
 YAML configurations.
 
-Keep in mind that environment variables have priority over flags.
 
-There are additional optional flag options discoverable via `--help`.
+You can use the --validate flag to verify your datadog and nobl9 credentials are valid.
 
-1. Copy a Datadog API Key into a file named `api.key` or into a environment variable named `DD_API_KEY`
-2. Copy a Datadog Application Key into a file named `application.key` or into a environment variable named `DD_APPLICATION_KEY`
-3. Run `slo-exporter.py --datasource=your-dd-datasource` or set environment variable named `N9_DATASOURCE`. This defaults output
-   to STDOUT and datasource project to default.
-4. Alternately you can specify output to a file via
-   `--output=file --filename=filename.yml` or setting `DD_OUTPUT` and `DD_FILENAME` (simple shell redirectionalso works).
-5. You can specify a custom project via `--project` or `N9_PROJECT`.
-6. You can specify a project to be populated via a tag via `--project_tag` or `N9_PROJECT_TAG`.
-7. The output from `slo-exporter.py` can be input directly to the Nobl9 sloctl
-   CLI. For example:
+1. Update the auth.yaml and config.toml files with the required credentials.
+2. By default the integration uses a Direct agent. If you are self-hosting the agent please update line 12 in slo.yaml accordingly.
+3. Run `./export.py > file.yaml` to dump the datadog SLOs into a n9 formatted yaml.
+4. Run `sloctl apply -f file.yaml --config config.toml` to apply it to nobl9.
 
 ```shell script
-./slo-exporter.py --datasource=your-dd-datasource \
---datasource_project=your-dd-datasource-project \
---project=your-dd-project > exported-datadog-slos.yaml
-
-sloctl apply -f exported-datadog-slos.yaml
+./export.py > file.yaml
+sloctl apply -f file.yaml --config config.toml
 ```
 
-Or, if you want to import all of your Datadog SLOs, more simply with `default` projects run:
-
-```shell script
-./slo-exporter.py --datasource=your-dd-datasource | sloctl apply -f -
-```
 
 Please note that sloctl's semantics are idempotent, like Kubernetes, so you can
 run this command repeatedly to keep the resulting Nobl9 SLOs in sync with the
@@ -49,56 +34,16 @@ pip install -r requirements.txt
 ```
 
 ## Using containerized slo-exporter
+Update the auth.yaml and config.toml files with the required credentials.
 
 Build the image
 
 ```shell script
-docker build -t slo-exporter
+docker build -t slo-exporter .
 ```
 
-Add environment variables manually on docker run
+Run the build
 
 ```shell script
-docker run \
--e "N9_PROJECT=" \
--e "N9_CLIENT_ID=" \
--e "N9_CLIENT_SECRET=" \
--e "DD_API_KEY=" \
--e "DD_APLICATION_KEY=" \
--e "N9_DATASOURCE=" \
-slo-exporter 
+docker run slo-exporter
 ```
-
-or providing env file with choosen variables
-
-```shell script
-docker run --env-file={your_env_file_name} slo-exporter 
-```
-
-## Environment variables
-
-For sloctl to work in a container set following environment variables:
-
-`N9_PROJECT`
-
-`N9_CLIENT_ID`
-
-`N9_CLIENT_SECRET`
-
-### Full list of environment variables to may set for the exporter
-
-`DD_API_KEY` - API Key for your DataDog service
-
-`DD_APPLICATION_KEY` - Application Key for your Datadog service
-
-`DD_FILENAME` - You may specify the filename to which SLO form Datadog will be exported
-
-`DD_OUTPUT` - You may choose the output type of the export like stdout (default), yaml or json.
-
-`N9_DATASOURCE`- DataDog Datasource in your Nobl9
-
-`N9_DATASOURCE_PROJECT` - DataDog Datasource Project in your Nobl9
-
-`N9_PROJECT` - Project in Nobl9
-
-`N9_PROJECT_TAG` - Project tag in Nobl9
