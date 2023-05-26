@@ -1,8 +1,10 @@
 datadog:
   DD_APPLICATION_KEY: 
   DD_API_KEY: 
-  DD_SITE: datadoghq.com
+  DD_SITE: "datadoghq.com"
+  DD_TAG: 'env:main' #DD can only handle a single tag, leave empty if you do not wish to sort.
 nobl9:
   N9_DATASOURCE: 
   N9_DS_PROJECT: 
   N9_PROJECT: 
+  N9_DS_KIND: Agent # Supports Agent or Direct types.

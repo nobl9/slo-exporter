@@ -3,13 +3,13 @@
 This script will help you convert Datadog SLO configurations to Nobl9
 YAML configurations.
 
+If you opt to run this locally, you must install the [sloctl CLI tool.](https://docs.nobl9.com/sloctl-user-guide)
 
 You can use the --validate flag to verify your datadog and nobl9 credentials are valid.
 
 1. Update the auth.yaml and config.toml files with the required credentials.
-2. By default the integration uses a Direct agent. If you are self-hosting the agent please update line 12 in slo.yaml accordingly.
-3. Run `./export.py > file.yaml` to dump the datadog SLOs into a n9 formatted yaml.
-4. Run `sloctl apply -f file.yaml --config config.toml` to apply it to nobl9.
+2. Run `./export.py > file.yaml` to dump the datadog SLOs into a n9 formatted yaml.
+3. Run `sloctl apply -f file.yaml --config config.toml` to apply it to nobl9.
 
 ```shell script
 ./export.py > file.yaml

@@ -6,6 +6,7 @@ import sys
 import argparse
 import re
 import logging
+import subprocess
 
 env = EnvYAML('auth.yaml')
 
@@ -13,11 +14,16 @@ env = EnvYAML('auth.yaml')
 DD_APP_KEY = env['datadog']['DD_APPLICATION_KEY']
 DD_API_KEY = env['datadog']['DD_API_KEY']
 DD_SITE = env['datadog']['DD_SITE']
+try:
+    DD_TAG = env['datadog']['DD_TAG']
+except:
+    pass
 
-# pull nobl9 prohect settings
+# pull nobl9 prohect seting
 N9_PROJECT= env['nobl9']['N9_PROJECT']
 N9_DATASOURCE= env['nobl9']['N9_DATASOURCE']
 N9_DS_PROJECT=env['nobl9']['N9_DS_PROJECT']
+N9_DS_KIND=env['nobl9']['N9_DS_KIND']
 
 def get_api_options_from_env():
     return {'api_key': DD_API_KEY, 'application_key': DD_APP_KEY}
@@ -35,7 +41,7 @@ def validation_options():
 def get_slo_configs(options):
     """Connect to Datadog and extract and return SLO configurations."""
     initialize(**options)
-    slo_configs = api.ServiceLevelObjective.get_all(limit=5000)
+    slo_configs = api.ServiceLevelObjective.get_all(limit=20000)
     if 'errors' in slo_configs.keys():
         print("\n", slo_configs)
         sys.exit(1)
@@ -84,28 +90,31 @@ def extract_tag(tag_name, config, default):
 def extract_values(config, datasource, datasource_project, project):
     """Extract the data we care about and return as a dict."""
     config_values = {}
-    config_values['name'] = normalize_name(config['name'])
-    config_values['displayName'] = config['name'][:63]
-    config_values['description'] = escape_chars(config['description'])
-    config_values['datasource'] = datasource
-    config_values['datasource_project'] = datasource_project
-    config_values['project'] = project
-    SERVICE_NAME = extract_tag(tag_name='service',config=config,
-                            default=config_values['name'])
-    config_values['service_name'] = SERVICE_NAME
-    config_values['thresholds'] = []
+    for x in config:
+        config_values = {}
+        config_values['name'] = normalize_name(config['name'])
+        config_values['displayName'] = config['name'][:63]
+        config_values['description'] = escape_chars(config['description'])
+        config_values['datasource'] = datasource
+        config_values['datasource_project'] = datasource_project
+        config_values['project'] = project
+        config_values['kind'] = N9_DS_KIND
+        SERVICE_NAME = extract_tag(tag_name='service',config=config,
+                                default=config_values['name'])
+        config_values['service_name'] = SERVICE_NAME
+        config_values['thresholds'] = []
 
-    num_thresholds = len(config['thresholds'])
-    for i in range(num_thresholds):
-        target_dict = config['thresholds'][i]
-        target = target_dict['target']
-        config_values['thresholds'].append({})
-        config_values['thresholds'][i]['budgetTarget'] = target
-        display_name = target_dict['target_display']
-        config_values['thresholds'][i]['displayName'] = display_name
-        config_values['good'] = config['query']['numerator']
-        config_values['total'] = config['query']['denominator']
-    config_values['count'] = config['thresholds'][0]['timeframe'][:-1]
+        num_thresholds = len(config['thresholds'])
+        for i in range(num_thresholds):
+            target_dict = config['thresholds'][i]
+            target = target_dict['target']
+            config_values['thresholds'].append({})
+            config_values['thresholds'][i]['budgetTarget'] = target
+            display_name = target_dict['target_display']
+            config_values['thresholds'][i]['displayName'] = display_name
+            config_values['good'] = config['query']['numerator']
+            config_values['total'] = config['query']['denominator']
+        config_values['count'] = config['thresholds'][0]['timeframe'][:-1]
     return config_values
 
 
@@ -151,9 +160,14 @@ def convert_configs(slo_configs, templates, datasource, datasource_project, proj
     nobl9_config = ''
     for config in slo_configs['data']:
         if 'query' in config.keys():
-            config_values = extract_values(config, N9_DATASOURCE, N9_DS_PROJECT, N9_PROJECT)
-            nobl9_config += construct_yaml(config_values, templates)
-
+            if DD_TAG and DD_TAG in config['tags']:
+                config_values = extract_values(config, N9_DATASOURCE, N9_DS_PROJECT, N9_PROJECT)
+                nobl9_config += construct_yaml(config_values, templates)
+            if DD_TAG is None:
+                config_values = extract_values(config, N9_DATASOURCE, N9_DS_PROJECT, N9_PROJECT)
+                nobl9_config += construct_yaml(config_values, templates)
+    if len(nobl9_config) < 1:
+        print("Please check your datadog configuration. No matching labels or SLOs were found.")
     return nobl9_config
 
 def dedupe(contents):

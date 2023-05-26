@@ -9,7 +9,7 @@ spec:
   service: {service_name}
   indicator:
     metricSource:
-      kind: Direct
+      kind: {kind}
       name: {datasource}
       project: {datasource_project}
   budgetingMethod: Occurrences
