@@ -1,0 +1,8 @@
+DD_APP_KEY: <Datadog Application Key>
+DD_API_KEY: <Datadog API key>
+DD_SITE: datadoghq.com
+DD_TAG: <TODO: Implement tag filtering>
+N9_DS: 
+N9_DS_PROJECT: 
+N9_PROJECT: 
+N9_DS_KIND:
