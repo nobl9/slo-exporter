@@ -17,6 +17,7 @@ import yaml
 
 from datadog_api_client import ApiClient
 from datadog_api_client import Configuration
+from datadog_api_client.exceptions import ApiException
 from datadog_api_client.v1.api.service_level_objectives_api import (
         ServiceLevelObjectivesApi
         )
@@ -61,11 +62,11 @@ def get_config(env_values=False, filename='config.yaml'):
     config = {}
     required_conf = ['DD_API_KEY', 'DD_APP_KEY', 'DD_SITE', 'N9_PROJECT',
                      'N9_DS', 'N9_DS_PROJECT', 'N9_DS_KIND']
-    if env_values==True:
+    if env_values:
         for item in required_conf:
             try:
                 config[item] = os.environ[item]
-            except KeyError as e:
+            except KeyError:
                 logging.error('Env variable {} not found.'.format(item))
                 sys.exit(1)
     else:
@@ -73,7 +74,7 @@ def get_config(env_values=False, filename='config.yaml'):
         for item in required_conf:
             try:
                 config[item] = config_yaml[item]
-            except KeyError as e:
+            except KeyError:
                 logging.error('Config value {} not found.'.format(item))
                 sys.exit(1)
     return config
@@ -93,10 +94,14 @@ def get_slo_configs(config):
     api_config.api_key['apiKeyAuth'] = config['DD_API_KEY']
     api_config.api_key['appKeyAuth'] = config['DD_APP_KEY']
     api_config.server_variables['site'] = config['DD_SITE']
-    with ApiClient(api_config) as api_client:
-        api_instance = ServiceLevelObjectivesApi(api_client)
-        response = api_instance.list_slos()
-    slo_configs = response.to_dict()
+    try:
+        with ApiClient(api_config) as api_client:
+            api_instance = ServiceLevelObjectivesApi(api_client)
+            response = api_instance.list_slos()
+        slo_configs = response.to_dict()
+    except ApiException as e:
+        logging.error(e)
+        sys.exit(1)
     return slo_configs
 
 
@@ -104,7 +109,7 @@ def normalize_name(name):
     """Turn a displayname in a kubernetes-stylei/RFC 1123-compliant name."""
     name = name.lower()
     name = re.sub('[^a-zA-Z0-9- ]', '', name)
-    name = re.sub('\s+', '-', name)
+    name = re.sub('\\s+', '-', name)
     name = re.sub(r'(-)+', r'\1', name)
     name = name[:63]
     name = name.strip('-')

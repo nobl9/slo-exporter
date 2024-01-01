@@ -5,17 +5,14 @@ YAML configurations.
 
 If you opt to run this locally, you must install the [sloctl CLI tool.](https://docs.nobl9.com/sloctl-user-guide)
 
-You can use the --validate flag to verify your datadog and nobl9 credentials are valid.
-
 1. Update the auth.yaml and config.toml files with the required credentials.
 2. Run `./export.py > file.yaml` to dump the datadog SLOs into a n9 formatted yaml.
 3. Run `sloctl apply -f file.yaml --config config.toml` to apply it to nobl9.
 
 ```shell script
-./export.py > file.yaml
+./slo_export.py > file.yaml
 sloctl apply -f file.yaml --config config.toml
 ```
-
 
 Please note that sloctl's semantics are idempotent, like Kubernetes, so you can
 run this command repeatedly to keep the resulting Nobl9 SLOs in sync with the
@@ -34,7 +31,7 @@ pip install -r requirements.txt
 ```
 
 ## Using containerized slo-exporter
-Update the auth.yaml and config.toml files with the required credentials.
+Update the config.yaml and config.toml files with the required credentials.
 
 Build the image
 
