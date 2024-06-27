@@ -7,7 +7,7 @@ If you opt to run this locally, you must install the [sloctl CLI tool.](https://
 
 1. Update the auth.yaml and config.toml files with the required credentials.
 2. Run `./slo_export.py > file.yaml` to dump the datadog SLOs into a n9 formatted yaml.
-3. Run `sloctl apply -f file.yaml --config config.toml` to apply it to nobl9.
+3. Run `sloctl apply -f file.yaml --config config.toml` to apply it to Nobl9.
 
 ```shell script
 ./slo_export.py > file.yaml
@@ -17,7 +17,7 @@ sloctl apply -f file.yaml --config config.toml
 Please note that sloctl's semantics are idempotent, like Kubernetes, so you can
 run this command repeatedly to keep the resulting Nobl9 SLOs in sync with the
 Datadog SLOs. (This accomplishes a one-way sync. Changes from Datadog will be
-synched to Nolb9. However, changes made in Nobl9 will not be synched back to
+synced to Nobl9. However, changes made in Nobl9 will not be synced back to
 Datadog.)
 
 ## Additional recommendations about the python environment
